@@ -1,17 +1,21 @@
-from typing import Union
-
 from fastapi import FastAPI
+from pydantic import BaseModel
+from gradio_client import Client
 
 app = FastAPI()
 
+class URLInput(BaseModel):
+    url_input: str
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+@app.post("/predict")
+def predict_url(input_data: URLInput):
+    client = Client("Nyandori/whisper")
+    result = client.predict(
+        url_input=input_data.url_input,
+        api_name="/predict"
+    )
+    return {"result": result}
 
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
-    
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
